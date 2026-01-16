@@ -1,0 +1,7 @@
+#!/usr/bin/env php
+<?php
+
+require __DIR__ . '/../vendor/autoload.php';
+
+// Votre logique de Maker ici...
+echo "Le Maker est prêt !\n";

@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UniLo Admin - Accueil</title>
+    <link rel="icon" type="image/png" href="../images/logo_unilo.png">
+    <script src="../js/auth.js"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            min-height: 100vh;
+            background: #f5f5f5;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 220px;
+            background: #2d2d2d;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            padding: 20px 0;
+            position: fixed;
+            height: 100vh;
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 20px;
+        }
+
+        .logo img {
+            width: 80px;
+            height: auto;
+            max-width: 100%;
+        }
+
+        .admin-badge {
+            background: #ff751f;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+            display: inline-block;
+            margin: 10px auto;
+        }
+
+        .nav-menu {
+            list-style: none;
+            flex: 1;
+            margin-top: 20px;
+        }
+
+        .nav-menu li {
+            margin: 5px 0;
+        }
+
+        .nav-menu a {
+            display: block;
+            color: white;
+            text-decoration: none;
+            padding: 15px 30px;
+            font-size: 16px;
+            font-weight: 500;
+            transition: background 0.3s;
+        }
+
+        .nav-menu a:hover {
+            background: rgba(255, 117, 31, 0.2);
+        }
+
+        .nav-menu a.active {
+            background: #ff751f;
+        }
+
+        .nav-bottom {
+            margin-top: auto;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .nav-bottom a {
+            display: block;
+            color: white;
+            text-decoration: none;
+            padding: 15px 30px;
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .nav-bottom a:hover {
+            background: rgba(255, 117, 31, 0.2);
+        }
+
+        .nav-bottom a.logout {
+            color: #ff751f;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 220px;
+            flex: 1;
+            padding: 40px 60px;
+        }
+
+        .page-header {
+            margin-bottom: 40px;
+        }
+
+        .page-title {
+            color: #2d2d2d;
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .page-subtitle {
+            color: #666;
+            font-size: 16px;
+        }
+
+        /* Dashboard Layout */
+        .dashboard-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+        }
+
+        .dashboard-left,
+        .dashboard-right {
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+            border-left: 4px solid #ff751f;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-value {
+            font-size: 36px;
+            font-weight: bold;
+            color: #ff751f;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        /* Quick Actions */
+        .section-title {
+            color: #2d2d2d;
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .quick-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .action-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-decoration: none;
+            color: inherit;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .action-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(255, 117, 31, 0.2);
+            border-bottom: 3px solid #ff751f;
+        }
+
+        .action-card h3 {
+            font-size: 18px;
+            color: #2d2d2d;
+            margin-bottom: 10px;
+        }
+
+        .action-card p {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .action-card .icon {
+            font-size: 30px;
+            margin-bottom: 15px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div x-data="adminAccueilApp()" x-init="init()">
+        <!-- Sidebar Admin -->
+        <nav class="sidebar">
+            <div class="logo">
+                <img src="../images/logo_unilo.png" alt="UniLo Logo">
+                <div class="admin-badge">Admin</div>
+            </div>
+
+            <ul class="nav-menu">
+                <li><a href="accueil.html" class="active">Tableau de bord</a></li>
+                <li><a href="users.html">Étudiants</a></li>
+                <li><a href="produits.html">Produits</a></li>
+                <li><a href="categories.html">Catégories</a></li>
+                <li><a href="emprunts.html">Emprunts</a></li>
+            </ul>
+
+            <div class="nav-bottom">
+                <a href="#" class="logout" @click.prevent="logout()">Déconnexion</a>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="page-header">
+                <h1 class="page-title">Tableau de bord</h1>
+                <p class="page-subtitle">Bienvenue <span x-text="user ? user.prenom + ' ' + user.nom : ''"></span></p>
+            </div>
+
+            <div class="dashboard-layout">
+                <!-- Colonne gauche : Stats -->
+                <div class="dashboard-left">
+                    <h2 class="section-title">Statistiques</h2>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-value" x-text="stats.users"></div>
+                            <div class="stat-label">Étudiants</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" x-text="stats.produits"></div>
+                            <div class="stat-label">Produits</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" x-text="stats.categories"></div>
+                            <div class="stat-label">Catégories</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" x-text="stats.emprunts"></div>
+                            <div class="stat-label">Emprunts actifs</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Colonne droite : Actions rapides -->
+                <div class="dashboard-right">
+                    <h2 class="section-title">Actions rapides</h2>
+                    <div class="quick-actions">
+                        <a href="users.html" class="action-card">
+                            <h3>Gérer les étudiants</h3>
+                            <p>Ajouter, modifier ou supprimer des étudiants</p>
+                        </a>
+                        <a href="produits.html" class="action-card">
+                            <h3>Gérer les produits</h3>
+                            <p>Ajouter, modifier ou supprimer des produits</p>
+                        </a>
+                        <a href="categories.html" class="action-card">
+                            <h3>Gérer les catégories</h3>
+                            <p>Organiser les catégories de produits</p>
+                        </a>
+                        <a href="emprunts.html" class="action-card">
+                            <h3>Voir les emprunts</h3>
+                            <p>Suivre tous les emprunts en cours</p>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        function adminAccueilApp() {
+            return {
+                user: null,
+                stats: {
+                    users: 0,
+                    produits: 0,
+                    categories: 0,
+                    emprunts: 0
+                },
+                loading: true,
+
+                async init() {
+                    // Vérifier que l'utilisateur est admin
+                    const isAllowed = await Auth.requireAdmin();
+                    if (!isAllowed) return;
+                    
+                    this.user = Auth.getUser();
+                    await this.fetchStats();
+                },
+
+                async fetchStats() {
+                    try {
+                        const [usersRes, produitsRes, categoriesRes, empruntsRes] = await Promise.all([
+                            fetch('/challg/public/api/users'),
+                            fetch('/challg/public/api/produits'),
+                            fetch('/challg/public/api/categories'),
+                            fetch('/challg/public/api/emprunts/active')
+                        ]);
+
+                        if (usersRes.ok) {
+                            const users = await usersRes.json();
+                            this.stats.users = users.filter(u => u.role === 'user').length;
+                        }
+                        if (produitsRes.ok) {
+                            const produits = await produitsRes.json();
+                            this.stats.produits = produits.length;
+                        }
+                        if (categoriesRes.ok) {
+                            const categories = await categoriesRes.json();
+                            this.stats.categories = categories.length;
+                        }
+                        if (empruntsRes.ok) {
+                            const emprunts = await empruntsRes.json();
+                            this.stats.emprunts = emprunts.length;
+                        }
+                    } catch (err) {
+                        console.error('Erreur:', err);
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+
+                async logout() {
+                    await Auth.logout();
+                }
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UniLo Admin - Étudiants</title>
+    <link rel="icon" type="image/png" href="../images/logo_unilo.png">
+    <script src="../js/auth.js"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            min-height: 100vh;
+            background: #f5f5f5;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 220px;
+            background: #2d2d2d;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            padding: 20px 0;
+            position: fixed;
+            height: 100vh;
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 20px;
+        }
+
+        .logo img {
+            width: 80px;
+            height: auto;
+            max-width: 100%;
+        }
+
+        .admin-badge {
+            background: #ff751f;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+            display: inline-block;
+            margin: 10px auto;
+        }
+
+        .nav-menu {
+            list-style: none;
+            flex: 1;
+            margin-top: 20px;
+        }
+
+        .nav-menu li {
+            margin: 5px 0;
+        }
+
+        .nav-menu a {
+            display: block;
+            color: white;
+            text-decoration: none;
+            padding: 15px 30px;
+            font-size: 16px;
+            font-weight: 500;
+            transition: background 0.3s;
+        }
+
+        .nav-menu a:hover {
+            background: rgba(255, 117, 31, 0.2);
+        }
+
+        .nav-menu a.active {
+            background: #ff751f;
+        }
+
+        .nav-bottom {
+            margin-top: auto;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .nav-bottom a {
+            display: block;
+            color: white;
+            text-decoration: none;
+            padding: 15px 30px;
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .nav-bottom a:hover {
+            background: rgba(255, 117, 31, 0.2);
+        }
+
+        .nav-bottom a.logout {
+            color: #ff751f;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 220px;
+            flex: 1;
+            padding: 40px 60px;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .page-title {
+            color: #2d2d2d;
+            font-size: 32px;
+            font-weight: bold;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #ff751f;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #e56a1b;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        .btn-info {
+            background: #17a2b8;
+            color: white;
+        }
+
+        .btn-info:hover {
+            background: #138496;
+        }
+
+        .btn-sm {
+            padding: 8px 15px;
+            font-size: 12px;
+        }
+
+        /* Stats Cards */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .stat-card .icon {
+            font-size: 30px;
+            margin-bottom: 10px;
+        }
+
+        .stat-card .value {
+            font-size: 28px;
+            font-weight: bold;
+            color: #ff751f;
+        }
+
+        .stat-card .label {
+            font-size: 13px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        /* Search & Filter */
+        .toolbar {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 250px;
+            position: relative;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 12px 20px 12px 45px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: #ff751f;
+        }
+
+        .search-box::before {
+            content: "";
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .filter-select {
+            padding: 12px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            background: white;
+            cursor: pointer;
+            min-width: 180px;
+        }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: #ff751f;
+        }
+
+        /* Table */
+        .table-container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 15px 20px;
+            text-align: left;
+        }
+
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #2d2d2d;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        td {
+            border-bottom: 1px solid #e0e0e0;
+            color: #444;
+        }
+
+        .role-badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .role-admin {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .role-user {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #ff751f;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-details {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .user-name {
+            font-weight: 600;
+            color: #2d2d2d;
+        }
+
+        .user-email {
+            font-size: 12px;
+            color: #666;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+
+        .modal-header {
+            padding: 20px 25px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 {
+            color: #2d2d2d;
+            font-size: 20px;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .modal-body {
+            padding: 25px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2d2d2d;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #ff751f;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .modal-footer {
+            padding: 20px 25px;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        /* Alert */
+        .alert {
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+
+        .empty-state .icon {
+            font-size: 60px;
+            margin-bottom: 20px;
+        }
+
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .hint {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        /* Emprunts count */
+        .emprunts-count {
+            background: #e9ecef;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            color: #495057;
+        }
+
+        .emprunts-count.has-emprunts {
+            background: #fff3cd;
+            color: #856404;
+        }
+    </style>
+</head>
+<body>
+    <div x-data="adminUsersApp()" x-init="init()">
+        <!-- Sidebar Admin -->
+        <nav class="sidebar">
+            <div class="logo">
+                <img src="../images/logo_unilo.png" alt="UniLo Logo">
+                <div class="admin-badge">Admin</div>
+            </div>
+
+            <ul class="nav-menu">
+                <li><a href="accueil.html">Tableau de bord</a></li>
+                <li><a href="users.html" class="active">Étudiants</a></li>
+                <li><a href="produits.html">Produits</a></li>
+                <li><a href="categories.html">Catégories</a></li>
+                <li><a href="emprunts.html">Emprunts</a></li>
+            </ul>
+
+            <div class="nav-bottom">
+                <a href="#" class="logout" @click.prevent="logout()">Déconnexion</a>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="page-header">
+                <h1 class="page-title">Gestion des étudiants</h1>
+                <button class="btn btn-primary" @click="openModal()">Ajouter un étudiant</button>
+            </div>
+
+            <!-- Alert -->
+            <div x-show="alert.show" x-transition class="alert" :class="alert.type === 'success' ? 'alert-success' : 'alert-error'">
+                <span x-text="alert.message"></span>
+            </div>
+
+            <!-- Stats -->
+            <div class="stats-row">
+                <div class="stat-card">
+                    <div class="value" x-text="stats.total"></div>
+                    <div class="label">Total étudiants</div>
+                </div>
+                <div class="stat-card">
+                    <div class="value" x-text="stats.avecEmprunts"></div>
+                    <div class="label">Avec emprunts actifs</div>
+                </div>
+                <div class="stat-card">
+                    <div class="value" x-text="stats.admins"></div>
+                    <div class="label">Administrateurs</div>
+                </div>
+            </div>
+
+            <!-- Toolbar -->
+            <div class="toolbar">
+                <div class="search-box">
+                    <input type="text" placeholder="Rechercher par nom, prénom ou email..." x-model="search" @input="filterUsers()">
+                </div>
+                <select class="filter-select" x-model="filterRole" @change="filterUsers()">
+                    <option value="">Tous les rôles</option>
+                    <option value="user">Étudiants</option>
+                    <option value="admin">Administrateurs</option>
+                </select>
+            </div>
+
+            <!-- Table -->
+            <div class="table-container">
+                <template x-if="loading">
+                    <div class="loading">Chargement des utilisateurs...</div>
+                </template>
+
+                <template x-if="!loading && filteredUsers.length === 0">
+                    <div class="empty-state">
+                        <div class="icon">👥</div>
+                        <h3>Aucun utilisateur trouvé</h3>
+                        <p>Ajoutez votre premier étudiant ou modifiez vos filtres</p>
+                    </div>
+                </template>
+
+                <template x-if="!loading && filteredUsers.length > 0">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Utilisateur</th>
+                                <th>Rôle</th>
+                                <th>Emprunts actifs</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <template x-for="user in filteredUsers" :key="user.id_user">
+                                <tr>
+                                    <td>
+                                        <div class="user-info">
+                                            <div class="user-avatar" x-text="getInitials(user)"></div>
+                                            <div class="user-details">
+                                                <span class="user-name" x-text="user.prenom + ' ' + user.nom"></span>
+                                                <span class="user-email" x-text="user.mail"></span>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="role-badge" :class="user.role === 'admin' ? 'role-admin' : 'role-user'" x-text="user.role === 'admin' ? 'Administrateur' : 'Étudiant'"></span>
+                                    </td>
+                                    <td>
+                                        <span class="emprunts-count" :class="{ 'has-emprunts': getUserEmpruntsCount(user.id_user) > 0 }" x-text="getUserEmpruntsCount(user.id_user) + ' emprunt(s)'"></span>
+                                    </td>
+                                    <td>
+                                        <div class="actions">
+                                            <button class="btn btn-info btn-sm" @click="viewEmprunts(user)" x-show="getUserEmpruntsCount(user.id_user) > 0">Emprunts</button>
+                                            <button class="btn btn-secondary btn-sm" @click="editUser(user)">Modifier</button>
+                                            <button class="btn btn-danger btn-sm" @click="deleteUser(user.id_user)" x-show="user.id_user !== currentUserId">Supprimer</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                </template>
+            </div>
+        </main>
+
+        <!-- Modal Ajouter/Modifier -->
+        <div class="modal-overlay" x-show="showModal" x-transition @click.self="closeModal()">
+            <div class="modal">
+                <div class="modal-header">
+                    <h2 x-text="isEditing ? 'Modifier l\'utilisateur' : 'Ajouter un étudiant'"></h2>
+                    <button class="modal-close" @click="closeModal()">&times;</button>
+                </div>
+                <form @submit.prevent="saveUser()">
+                    <div class="modal-body">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Prénom *</label>
+                                <input type="text" x-model="form.prenom" required placeholder="Ex: Jean">
+                            </div>
+                            <div class="form-group">
+                                <label>Nom *</label>
+                                <input type="text" x-model="form.nom" required placeholder="Ex: Dupont">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Email *</label>
+                            <input type="email" x-model="form.mail" required placeholder="Ex: jean.dupont@univ.fr">
+                        </div>
+
+                        <div class="form-group">
+                            <label x-text="isEditing ? 'Nouveau mot de passe (laisser vide pour ne pas changer)' : 'Mot de passe *'"></label>
+                            <input type="password" x-model="form.mdp" :required="!isEditing" placeholder="••••••••" minlength="6">
+                            <p class="hint">Minimum 6 caractères</p>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Rôle *</label>
+                            <select x-model="form.role" required>
+                                <option value="user">Étudiant</option>
+                                <option value="admin">Administrateur</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" @click="closeModal()">Annuler</button>
+                        <button type="submit" class="btn btn-primary" x-text="isEditing ? 'Modifier' : 'Ajouter'"></button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Modal Emprunts -->
+        <div class="modal-overlay" x-show="showEmpruntsModal" x-transition @click.self="closeEmpruntsModal()">
+            <div class="modal" style="max-width: 700px;">
+                <div class="modal-header">
+                    <h2 x-text="'Emprunts de ' + (selectedUser ? selectedUser.prenom + ' ' + selectedUser.nom : '')"></h2>
+                    <button class="modal-close" @click="closeEmpruntsModal()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <template x-if="userEmprunts.length === 0">
+                        <div class="empty-state" style="padding: 30px;">
+                            <p>Aucun emprunt actif</p>
+                        </div>
+                    </template>
+                    <template x-if="userEmprunts.length > 0">
+                        <table style="font-size: 14px;">
+                            <thead>
+                                <tr>
+                                    <th>Produit</th>
+                                    <th>Date emprunt</th>
+                                    <th>Date retour</th>
+                                    <th>Statut</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <template x-for="emprunt in userEmprunts" :key="emprunt.id_emprunt">
+                                    <tr>
+                                        <td x-text="getProduitName(emprunt.id_produit)"></td>
+                                        <td x-text="formatDate(emprunt.date_emprunt)"></td>
+                                        <td x-text="formatDate(emprunt.date_retour)"></td>
+                                        <td>
+                                            <span class="role-badge" :class="isOverdue(emprunt) ? 'role-admin' : 'role-user'" x-text="isOverdue(emprunt) ? 'En retard' : 'En cours'"></span>
+                                        </td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </template>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @click="closeEmpruntsModal()">Fermer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function adminUsersApp() {
+            return {
+                users: [],
+                filteredUsers: [],
+                emprunts: [],
+                produits: [],
+                loading: true,
+                showModal: false,
+                showEmpruntsModal: false,
+                isEditing: false,
+                editingId: null,
+                currentUserId: null,
+                selectedUser: null,
+                userEmprunts: [],
+                search: '',
+                filterRole: '',
+                alert: {
+                    show: false,
+                    type: '',
+                    message: ''
+                },
+                stats: {
+                    total: 0,
+                    avecEmprunts: 0,
+                    admins: 0
+                },
+                form: {
+                    nom: '',
+                    prenom: '',
+                    mail: '',
+                    mdp: '',
+                    role: 'user'
+                },
+
+                async init() {
+                    const isAllowed = await Auth.requireAdmin();
+                    if (!isAllowed) return;
+                    
+                    this.currentUserId = Auth.getUser().id_user;
+                    
+                    await Promise.all([
+                        this.fetchUsers(),
+                        this.fetchEmprunts(),
+                        this.fetchProduits()
+                    ]);
+                },
+
+                async fetchUsers() {
+                    try {
+                        const response = await fetch('/challg/public/api/users');
+                        if (response.ok) {
+                            this.users = await response.json();
+                            this.calculateStats();
+                            this.filterUsers();
+                        }
+                    } catch (err) {
+                        console.error('Erreur:', err);
+                        this.showAlert('error', 'Erreur lors du chargement des utilisateurs');
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+
+                async fetchEmprunts() {
+                    try {
+                        const response = await fetch('/challg/public/api/emprunts/active');
+                        if (response.ok) {
+                            this.emprunts = await response.json();
+                        }
+                    } catch (err) {
+                        console.error('Erreur:', err);
+                    }
+                },
+
+                async fetchProduits() {
+                    try {
+                        const response = await fetch('/challg/public/api/produits');
+                        if (response.ok) {
+                            this.produits = await response.json();
+                        }
+                    } catch (err) {
+                        console.error('Erreur:', err);
+                    }
+                },
+
+                calculateStats() {
+                    this.stats.total = this.users.filter(u => u.role === 'user').length;
+                    this.stats.admins = this.users.filter(u => u.role === 'admin').length;
+                    
+                    const usersWithEmprunts = new Set(this.emprunts.map(e => e.id_user));
+                    this.stats.avecEmprunts = usersWithEmprunts.size;
+                },
+
+                filterUsers() {
+                    this.filteredUsers = this.users.filter(u => {
+                        const matchSearch = u.nom.toLowerCase().includes(this.search.toLowerCase()) ||
+                                          u.prenom.toLowerCase().includes(this.search.toLowerCase()) ||
+                                          u.mail.toLowerCase().includes(this.search.toLowerCase());
+                        const matchRole = !this.filterRole || u.role === this.filterRole;
+                        return matchSearch && matchRole;
+                    });
+                },
+
+                getInitials(user) {
+                    return (user.prenom[0] + user.nom[0]).toUpperCase();
+                },
+
+                getUserEmpruntsCount(userId) {
+                    return this.emprunts.filter(e => e.id_user == userId).length;
+                },
+
+                getProduitName(id) {
+                    const produit = this.produits.find(p => p.id_produit == id);
+                    return produit ? produit.nom : 'Produit inconnu';
+                },
+
+                formatDate(dateStr) {
+                    const date = new Date(dateStr);
+                    return date.toLocaleDateString('fr-FR', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric'
+                    });
+                },
+
+                isOverdue(emprunt) {
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    const dateRetour = new Date(emprunt.date_retour);
+                    return dateRetour < today;
+                },
+
+                openModal() {
+                    this.isEditing = false;
+                    this.editingId = null;
+                    this.resetForm();
+                    this.showModal = true;
+                },
+
+                closeModal() {
+                    this.showModal = false;
+                    this.resetForm();
+                },
+
+                resetForm() {
+                    this.form = {
+                        nom: '',
+                        prenom: '',
+                        mail: '',
+                        mdp: '',
+                        role: 'user'
+                    };
+                },
+
+                editUser(user) {
+                    this.isEditing = true;
+                    this.editingId = user.id_user;
+                    this.form = {
+                        nom: user.nom,
+                        prenom: user.prenom,
+                        mail: user.mail,
+                        mdp: '',
+                        role: user.role
+                    };
+                    this.showModal = true;
+                },
+
+                viewEmprunts(user) {
+                    this.selectedUser = user;
+                    this.userEmprunts = this.emprunts.filter(e => e.id_user == user.id_user);
+                    this.showEmpruntsModal = true;
+                },
+
+                closeEmpruntsModal() {
+                    this.showEmpruntsModal = false;
+                    this.selectedUser = null;
+                    this.userEmprunts = [];
+                },
+
+                async saveUser() {
+                    try {
+                        const data = {
+                            nom: this.form.nom,
+                            prenom: this.form.prenom,
+                            mail: this.form.mail,
+                            role: this.form.role
+                        };
+
+                        // Only include password if provided
+                        if (this.form.mdp) {
+                            data.mdp = this.form.mdp;
+                        }
+
+                        let response;
+                        if (this.isEditing) {
+                            response = await fetch(`/challg/public/api/users/${this.editingId}`, {
+                                method: 'PUT',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(data)
+                            });
+                        } else {
+                            response = await fetch('/challg/public/api/users', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(data)
+                            });
+                        }
+
+                        if (response.ok) {
+                            this.showAlert('success', this.isEditing ? 'Utilisateur modifié avec succès' : 'Utilisateur ajouté avec succès');
+                            this.closeModal();
+                            await this.fetchUsers();
+                        } else {
+                            const error = await response.json();
+                            this.showAlert('error', error.error || 'Une erreur est survenue');
+                        }
+                    } catch (err) {
+                        console.error('Erreur:', err);
+                        this.showAlert('error', 'Une erreur est survenue');
+                    }
+                },
+
+                async deleteUser(id) {
+                    if (!confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ?')) return;
+
+                    try {
+                        const response = await fetch(`/challg/public/api/users/${id}`, {
+                            method: 'DELETE'
+                        });
+
+                        if (response.ok) {
+                            this.showAlert('success', 'Utilisateur supprimé avec succès');
+                            await this.fetchUsers();
+                        } else {
+                            const error = await response.json();
+                            this.showAlert('error', error.error || 'Erreur lors de la suppression');
+                        }
+                    } catch (err) {
+                        console.error('Erreur:', err);
+                        this.showAlert('error', 'Erreur lors de la suppression');
+                    }
+                },
+
+                showAlert(type, message) {
+                    this.alert = { show: true, type, message };
+                    setTimeout(() => {
+                        this.alert.show = false;
+                    }, 4000);
+                },
+
+                async logout() {
+                    await Auth.logout();
+                }
+            }
+        }
+    </script>
+</body>
+</html>

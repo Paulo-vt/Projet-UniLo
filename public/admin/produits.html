@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UniLo Admin - Produits</title>
+    <link rel="icon" type="image/png" href="../images/logo_unilo.png">
+    <script src="../js/auth.js"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            min-height: 100vh;
+            background: #f5f5f5;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 220px;
+            background: #2d2d2d;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            padding: 20px 0;
+            position: fixed;
+            height: 100vh;
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 20px;
+        }
+
+        .logo img {
+            width: 80px;
+            height: auto;
+            max-width: 100%;
+        }
+
+        .admin-badge {
+            background: #ff751f;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+            display: inline-block;
+            margin: 10px auto;
+        }
+
+        .nav-menu {
+            list-style: none;
+            flex: 1;
+            margin-top: 20px;
+        }
+
+        .nav-menu li {
+            margin: 5px 0;
+        }
+
+        .nav-menu a {
+            display: block;
+            color: white;
+            text-decoration: none;
+            padding: 15px 30px;
+            font-size: 16px;
+            font-weight: 500;
+            transition: background 0.3s;
+        }
+
+        .nav-menu a:hover {
+            background: rgba(255, 117, 31, 0.2);
+        }
+
+        .nav-menu a.active {
+            background: #ff751f;
+        }
+
+        .nav-bottom {
+            margin-top: auto;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .nav-bottom a {
+            display: block;
+            color: white;
+            text-decoration: none;
+            padding: 15px 30px;
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .nav-bottom a:hover {
+            background: rgba(255, 117, 31, 0.2);
+        }
+
+        .nav-bottom a.logout {
+            color: #ff751f;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 220px;
+            flex: 1;
+            padding: 40px 60px;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .page-title {
+            color: #2d2d2d;
+            font-size: 32px;
+            font-weight: bold;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #ff751f;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #e56a1b;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        .btn-sm {
+            padding: 8px 15px;
+            font-size: 12px;
+        }
+
+        /* Search & Filter */
+        .toolbar {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 250px;
+            position: relative;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 12px 20px 12px 45px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: #ff751f;
+        }
+
+        .search-box::before {
+            content: "";
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .filter-select {
+            padding: 12px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            background: white;
+            cursor: pointer;
+            min-width: 180px;
+        }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: #ff751f;
+        }
+
+        /* Table */
+        .table-container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 15px 20px;
+            text-align: left;
+        }
+
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #2d2d2d;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        td {
+            border-bottom: 1px solid #e0e0e0;
+            color: #444;
+        }
+
+        .product-image {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+
+        .status-badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-available {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-unavailable {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+
+        .modal-header {
+            padding: 20px 25px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 {
+            color: #2d2d2d;
+            font-size: 20px;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .modal-body {
+            padding: 25px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2d2d2d;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #ff751f;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .modal-footer {
+            padding: 20px 25px;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        /* Alert */
+        .alert {
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+
+        .empty-state .icon {
+            font-size: 60px;
+            margin-bottom: 20px;
+        }
+
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div x-data="adminProduitsApp()" x-init="init()">
+        <!-- Sidebar Admin -->
+        <nav class="sidebar">
+            <div class="logo">
+                <img src="../images/logo_unilo.png" alt="UniLo Logo">
+                <div class="admin-badge">Admin</div>
+            </div>
+
+            <ul class="nav-menu">
+                <li><a href="accueil.html">Tableau de bord</a></li>
+                <li><a href="users.html">Étudiants</a></li>
+                <li><a href="produits.html" class="active">Produits</a></li>
+                <li><a href="categories.html">Catégories</a></li>
+                <li><a href="emprunts.html">Emprunts</a></li>
+            </ul>
+
+            <div class="nav-bottom">
+                <a href="#" class="logout" @click.prevent="logout()">Déconnexion</a>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="page-header">
+                <h1 class="page-title">Gestion des produits</h1>
+                <button class="btn btn-primary" @click="openModal()">Ajouter un produit</button>
+            </div>
+
+            <!-- Alert -->
+            <div x-show="alert.show" x-transition class="alert" :class="alert.type === 'success' ? 'alert-success' : 'alert-error'">
+                <span x-text="alert.message"></span>
+            </div>
+
+            <!-- Toolbar -->
+            <div class="toolbar">
+                <div class="search-box">
+                    <input type="text" placeholder="Rechercher un produit..." x-model="search" @input="filterProduits()">
+                </div>
+                <select class="filter-select" x-model="filterCategorie" @change="filterProduits()">
+                    <option value="">Toutes les catégories</option>
+                    <template x-for="cat in categories" :key="cat.id_categorie">
+                        <option :value="cat.id_categorie" x-text="cat.nom"></option>
+                    </template>
+                </select>
+                <select class="filter-select" x-model="filterStatut" @change="filterProduits()">
+                    <option value="">Tous les statuts</option>
+                    <option value="1">Disponible</option>
+                    <option value="0">Indisponible</option>
+                </select>
+            </div>
+
+            <!-- Table -->
+            <div class="table-container">
+                <template x-if="loading">
+                    <div class="loading">Chargement des produits...</div>
+                </template>
+
+                <template x-if="!loading && filteredProduits.length === 0">
+                    <div class="empty-state">
+                        <div class="icon">📦</div>
+                        <h3>Aucun produit trouvé</h3>
+                        <p>Ajoutez votre premier produit ou modifiez vos filtres</p>
+                    </div>
+                </template>
+
+                <template x-if="!loading && filteredProduits.length > 0">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Image</th>
+                                <th>Nom</th>
+                                <th>Catégorie</th>
+                                <th>Caution</th>
+                                <th>Quantité</th>
+                                <th>Statut</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <template x-for="produit in filteredProduits" :key="produit.id_produit">
+                                <tr>
+                                    <td>
+                                        <img :src="produit.image || '../images/placeholder.png'" :alt="produit.nom" class="product-image">
+                                    </td>
+                                    <td x-text="produit.nom"></td>
+                                    <td x-text="getCategoryName(produit.id_categorie)"></td>
+                                    <td x-text="produit.caution + ' €'"></td>
+                                    <td x-text="produit.quantite"></td>
+                                    <td>
+                                        <span class="status-badge" :class="produit.statut ? 'status-available' : 'status-unavailable'" x-text="produit.statut ? 'Disponible' : 'Indisponible'"></span>
+                                    </td>
+                                    <td>
+                                        <div class="actions">
+                                            <button class="btn btn-secondary btn-sm" @click="editProduit(produit)">Modifier</button>
+                                            <button class="btn btn-danger btn-sm" @click="deleteProduit(produit.id_produit)">Supprimer</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                </template>
+            </div>
+        </main>
+
+        <!-- Modal Ajouter/Modifier -->
+        <div class="modal-overlay" x-show="showModal" x-transition @click.self="closeModal()">
+            <div class="modal">
+                <div class="modal-header">
+                    <h2 x-text="isEditing ? 'Modifier le produit' : 'Ajouter un produit'"></h2>
+                    <button class="modal-close" @click="closeModal()">&times;</button>
+                </div>
+                <form @submit.prevent="saveProduit()">
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label>Nom du produit *</label>
+                            <input type="text" x-model="form.nom" required placeholder="Ex: MacBook Pro">
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Catégorie *</label>
+                                <select x-model="form.id_categorie" required>
+                                    <option value="">Sélectionner une catégorie</option>
+                                    <template x-for="cat in categories" :key="cat.id_categorie">
+                                        <option :value="cat.id_categorie" x-text="cat.nom"></option>
+                                    </template>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Caution (€) *</label>
+                                <input type="number" step="0.01" min="0" x-model="form.caution" required placeholder="Ex: 50.00">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Quantité *</label>
+                                <input type="number" min="0" x-model="form.quantite" required placeholder="Ex: 10">
+                            </div>
+                            <div class="form-group">
+                                <label>Statut</label>
+                                <div class="checkbox-group" style="margin-top: 10px;">
+                                    <input type="checkbox" id="statut" x-model="form.statut">
+                                    <label for="statut" style="margin-bottom: 0; font-weight: normal;">Disponible à l'emprunt</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Description *</label>
+                            <textarea x-model="form.description" required placeholder="Description du produit..."></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label>URL de l'image</label>
+                            <input type="url" x-model="form.image" placeholder="https://example.com/image.jpg">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" @click="closeModal()">Annuler</button>
+                        <button type="submit" class="btn btn-primary" x-text="isEditing ? 'Modifier' : 'Ajouter'"></button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function adminProduitsApp() {
+            return {
+                produits: [],
+                filteredProduits: [],
+                categories: [],
+                loading: true,
+                showModal: false,
+                isEditing: false,
+                editingId: null,
+                search: '',
+                filterCategorie: '',
+                filterStatut: '',
+                alert: {
+                    show: false,
+                    type: '',
+                    message: ''
+                },
+                form: {
+                    nom: '',
+                    id_categorie: '',
+                    caution: '',
+                    quantite: '',
+                    statut: true,
+                    description: '',
+                    image: ''
+                },
+
+                async init() {
+                    const isAllowed = await Auth.requireAdmin();
+                    if (!isAllowed) return;
+                    
+                    await this.fetchCategories();
+                    await this.fetchProduits();
+                },
+
+                async fetchProduits() {
+                    try {
+                        const response = await fetch('/challg/public/api/produits');
+                        if (response.ok) {
+                            this.produits = await response.json();
+                            this.filterProduits();
+                        }
+                    } catch (err) {
+                        console.error('Erreur:', err);
+                        this.showAlert('error', 'Erreur lors du chargement des produits');
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+
+                async fetchCategories() {
+                    try {
+                        const response = await fetch('/challg/public/api/categories');
+                        if (response.ok) {
+                            this.categories = await response.json();
+                        }
+                    } catch (err) {
+                        console.error('Erreur:', err);
+                    }
+                },
+
+                filterProduits() {
+                    this.filteredProduits = this.produits.filter(p => {
+                        const matchSearch = p.nom.toLowerCase().includes(this.search.toLowerCase()) ||
+                                          p.description.toLowerCase().includes(this.search.toLowerCase());
+                        const matchCategorie = !this.filterCategorie || p.id_categorie == this.filterCategorie;
+                        const matchStatut = this.filterStatut === '' || p.statut == this.filterStatut;
+                        return matchSearch && matchCategorie && matchStatut;
+                    });
+                },
+
+                getCategoryName(id) {
+                    const cat = this.categories.find(c => c.id_categorie == id);
+                    return cat ? cat.nom : 'Non défini';
+                },
+
+                openModal() {
+                    this.isEditing = false;
+                    this.editingId = null;
+                    this.resetForm();
+                    this.showModal = true;
+                },
+
+                closeModal() {
+                    this.showModal = false;
+                    this.resetForm();
+                },
+
+                resetForm() {
+                    this.form = {
+                        nom: '',
+                        id_categorie: '',
+                        caution: '',
+                        quantite: '',
+                        statut: true,
+                        description: '',
+                        image: ''
+                    };
+                },
+
+                editProduit(produit) {
+                    this.isEditing = true;
+                    this.editingId = produit.id_produit;
+                    this.form = {
+                        nom: produit.nom,
+                        id_categorie: produit.id_categorie,
+                        caution: produit.caution,
+                        quantite: produit.quantite,
+                        statut: Boolean(produit.statut),
+                        description: produit.description,
+                        image: produit.image
+                    };
+                    this.showModal = true;
+                },
+
+                async saveProduit() {
+                    try {
+                        const data = {
+                            nom: this.form.nom,
+                            id_categorie: parseInt(this.form.id_categorie),
+                            caution: parseFloat(this.form.caution),
+                            quantite: parseInt(this.form.quantite),
+                            statut: this.form.statut ? 1 : 0,
+                            description: this.form.description,
+                            image: this.form.image || '../images/placeholder.png'
+                        };
+
+                        let response;
+                        if (this.isEditing) {
+                            response = await fetch(`/challg/public/api/produits/${this.editingId}`, {
+                                method: 'PUT',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(data)
+                            });
+                        } else {
+                            response = await fetch('/challg/public/api/produits', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(data)
+                            });
+                        }
+
+                        if (response.ok) {
+                            this.showAlert('success', this.isEditing ? 'Produit modifié avec succès' : 'Produit ajouté avec succès');
+                            this.closeModal();
+                            await this.fetchProduits();
+                        } else {
+                            const error = await response.json();
+                            this.showAlert('error', error.error || 'Une erreur est survenue');
+                        }
+                    } catch (err) {
+                        console.error('Erreur:', err);
+                        this.showAlert('error', 'Une erreur est survenue');
+                    }
+                },
+
+                async deleteProduit(id) {
+                    if (!confirm('Êtes-vous sûr de vouloir supprimer ce produit ?')) return;
+
+                    try {
+                        const response = await fetch(`/challg/public/api/produits/${id}`, {
+                            method: 'DELETE'
+                        });
+
+                        if (response.ok) {
+                            this.showAlert('success', 'Produit supprimé avec succès');
+                            await this.fetchProduits();
+                        } else {
+                            const error = await response.json();
+                            this.showAlert('error', error.error || 'Erreur lors de la suppression');
+                        }
+                    } catch (err) {
+                        console.error('Erreur:', err);
+                        this.showAlert('error', 'Erreur lors de la suppression');
+                    }
+                },
+
+                showAlert(type, message) {
+                    this.alert = { show: true, type, message };
+                    setTimeout(() => {
+                        this.alert.show = false;
+                    }, 4000);
+                },
+
+                async logout() {
+                    await Auth.logout();
+                }
+            }
+        }
+    </script>
+</body>
+</html>
