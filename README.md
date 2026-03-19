@@ -244,8 +244,3 @@ Exemple : ajouter `GET /api/ping`.
 - `404` : ressource absente (`notFound()` ou `set404()`)
 
 ---
-
-Si tu veux, je peux aussi te faire :
-
-- une **table récap de toutes les routes** (méthode + URL + description + droits)
-- un schéma rapide “qui appelle qui” (API -> Controller -> Entity -> DB)
